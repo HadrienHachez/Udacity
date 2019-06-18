@@ -1,3 +1,8 @@
+import sys
+if(len(sys.argv) != 2):
+    print("wrong args")
+    exit()
+
 import numpy as np
 import cv2
 import utils
@@ -7,12 +12,6 @@ import base64
 from io import BytesIO
 from PIL import Image
 from keras.models import load_model
-
-INPUT_SHAPE = (160, 320, 3) # height, width, channels
-
-MAX_SPEED = 15
-MIN_SPEED = 5
-speed_limit = MAX_SPEED
 
 # Socket.IO server
 sio = socketio.Server()
@@ -28,22 +27,20 @@ def telemetry(sid, data):
         image = Image.open(BytesIO(base64.b64decode(data["image"])))
 
         try:
-            image = np.asarray(image)       
-            image = utils.preprocess(image) # apply the preprocessing
+            image = np.asarray(image)      
+            
+            # apply the preprocessing
+            if mode==1:
+                image = utils.processImg(image)
+            else:
+                image = utils.preprocess(image)
+
             image = np.array([image])       # the model expects 4D array
 
             # Get Prediction
             steering_angle = float(model.predict(image, batch_size=1))
-
-            # set speed limits (downhill, ..)
-            global speed_limit
-            if speed > speed_limit:
-                speed_limit = MIN_SPEED 
-            else:
-                speed_limit = MAX_SPEED
-            
             # calculate throttle
-            throttle = 1.0 - steering_angle**2 - (speed/speed_limit)**2
+            throttle = 1.0 - speed/25
 
             send(steering_angle, throttle)
         except Exception as e:
@@ -63,6 +60,18 @@ def send(steer, throttle):
 
 # wrap with a WSGI application
 app = socketio.WSGIApp(sio)
+
+# simulator will connect to localhost:4567
+if __name__ == '__main__':
+    mode=int(sys.argv[1])
+    if mode == 2:
+        model = load_model("./models/model_vgg.h5")
+    elif mode == 1:
+        model = load_model("./models/model_basic.h5")
+    else:
+        print("wrong args")
+        exit()
+    eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
 
 # simulator will connect to localhost:4567
 if __name__ == '__main__':
