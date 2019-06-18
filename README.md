@@ -11,7 +11,7 @@ We are here building a minimal version of self driving car. Here, we have a fron
 
 ## Starting the simulation
 
-1. Clone the repository: `git clone https://github.com/julienkessels/udacity-self-driving-car`
+1. Clone the repository
 2. `cd udacity-self-driving-car`
 3. Run the simulator available [here](https://github.com/udacity/self-driving-car-sim)
 4. `python drive.py [1,2]` 1:simple CNN, 2: custom vgg
