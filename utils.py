@@ -16,32 +16,6 @@ def crop(img):
     cropped = img[90:140, :, :]
     return cropped
 
-
-# rgb values normalized to -1 and 1
-def normalize(img):
-    normalized = img
-    for x in range(160):
-        for y in range(320):
-            normalized[x][y] = normalized[x][y]/127.5-1.0
-    return normalized
-
-
-# gaussian blur
-def blur(img):
-    blurred = cv2.GaussianBlur(img, (5, 5),0)
-    return blurred
-
-
-# canny edge detection
-def canny(img):
-    v = np.median(img)
-    sigma = 0.2
-    lower = int(max(150, (1.0 - sigma) * v))
-    upper = int(max(255, (1.0 + sigma) * v))
-    canny = cv2.Canny(img, lower, upper)
-    return canny
-
-
 # resize cropped image
 def resize(img):
     resized = cv2.resize(img, (320, 160), cv2.INTER_AREA)
@@ -66,11 +40,6 @@ def flip(image, steering_angle):
 def preprocess(image):
     image = crop(image)
     image = resize(image)
-    #image = blur(image)
-    
-    #image = canny(image)
-    #image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-    #image = cv2.rectangle(image, (90, 90), (230, 160), (0,0,0), thickness=-1)
 
     image = rgb2yuv(image)
 
@@ -78,7 +47,7 @@ def preprocess(image):
 
 
 # Generate augmented images
-def augment(data_dir, center, left, right, steering_angle):
+def fill(data_dir, center, left, right, steering_angle):
     image = load_image(data_dir, center)
 
     image, steering_angle = flip(image, steering_angle)    # flip augmentation
@@ -97,7 +66,7 @@ def batch_gen(data_dir, image_paths, steering_angles, batch_size, is_training):
 
             # argumentation only if is in training
             if is_training and np.random.rand() < 0.6:
-                image, steering_angle = augment(data_dir, center, left, right, steering_angle)
+                image, steering_angle = fill(data_dir, center, left, right, steering_angle)
             else:
                 image = load_image(data_dir, center) 
 
